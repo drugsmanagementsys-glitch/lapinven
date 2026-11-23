@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinic Laptop Inventory & Sticker System | D2F Systems</title>
+    <title>Clinic Laptop Inventory & Thermal Label System | D2F Systems</title>
+    <!-- JsBarcode Library for crisp 203/300 DPI Code 128 barcodes -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <style>
         :root {
             --bg-main: #f4f7f9;
@@ -315,21 +317,24 @@
             letter-spacing: 0.5px;
         }
 
-        /* =========================================
-           PRINT STYLES FOR 4" x 2" STICKER (BIG LAP NO)
-           ========================================= */
+        /* ==============================================================
+           POS THERMAL LABEL PRINT LAYOUT
+           Size: 4" x 2" (101.6 mm x 50.8 mm) Landscape
+           Barcode Area: ~85% width (~86 mm) x ~35% height (~18 mm)
+           ============================================================== */
         #print-container {
             display: none;
         }
 
         @media print {
             @page {
-                size: 4in 2in;
+                size: 101.6mm 50.8mm;
                 margin: 0;
             }
-            body {
-                padding: 0;
+            html, body {
+                width: 101.6mm;
                 margin: 0;
+                padding: 0;
                 background: #fff;
             }
             .no-print {
@@ -339,82 +344,95 @@
                 display: block !important;
             }
             .sticker-page {
-                width: 4in;
-                height: 2in;
-                padding: 0.1in 0.14in;
+                width: 101.6mm;
+                height: 50.8mm;
+                padding: 2.2mm 3.5mm;
                 box-sizing: border-box;
-                border: 2px solid #000;
                 background: #fff;
                 color: #000;
                 display: flex;
-                flex-direction: row;
-                align-items: center;
+                flex-direction: column;
                 justify-content: space-between;
                 page-break-after: always;
                 break-after: page;
+                overflow: hidden;
             }
             .sticker-page:last-child {
                 page-break-after: auto;
                 break-after: auto;
             }
-            .sticker-left {
-                width: 40%;
+            /* Top Section (~60% height): Big Lap No + Site/Model/SN */
+            .sticker-top {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                height: 27mm;
+                border-bottom: 1.5px solid #000;
+                padding-bottom: 1.5mm;
+            }
+            .sticker-num-box {
+                width: 32%;
                 height: 100%;
-                border-right: 2px solid #000;
+                border-right: 1.5px solid #000;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                padding-right: 8px;
+                padding-right: 2mm;
             }
             .sticker-num-title {
-                font-size: 10pt;
+                font-size: 7.5pt;
                 font-weight: 800;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
+                line-height: 1;
             }
             .sticker-big-num {
-                font-size: 68pt;
+                font-size: 38pt;
                 font-weight: 900;
                 line-height: 0.95;
-                margin-top: 4px;
+                margin-top: 1mm;
             }
-            .sticker-right {
-                width: 60%;
-                padding-left: 14px;
+            .sticker-details-box {
+                width: 68%;
+                padding-left: 3mm;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                gap: 9px;
-                height: 100%;
+                gap: 1.2mm;
             }
-            .sticker-row {
+            .sticker-site {
+                font-size: 13.5pt;
+                font-weight: 900;
+                line-height: 1.05;
+                text-transform: uppercase;
+            }
+            .sticker-meta-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                font-size: 9.5pt;
+                font-weight: 700;
+            }
+            .sticker-sn-label {
+                font-family: monospace;
+                font-size: 9.5pt;
+                font-weight: 800;
+            }
+            /* Bottom Section (~35% height = ~18mm, ~85% width = ~86mm): Code 128 Barcode */
+            .sticker-barcode-section {
+                width: 100%;
+                height: 18.5mm;
                 display: flex;
                 flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding-top: 0.5mm;
             }
-            .sticker-label {
-                font-size: 7.5pt;
-                font-weight: 700;
-                text-transform: uppercase;
-                color: #333;
-                line-height: 1.1;
-            }
-            .sticker-val-site {
-                font-size: 15pt;
-                font-weight: 900;
-                line-height: 1.15;
-            }
-            .sticker-val-model {
-                font-size: 12.5pt;
-                font-weight: 800;
-                line-height: 1.15;
-            }
-            .sticker-val-sn {
-                font-size: 11.5pt;
-                font-weight: 800;
-                font-family: monospace;
-                letter-spacing: 0.5px;
-                line-height: 1.15;
+            .sticker-barcode-section svg {
+                width: 86mm !important;   /* ~85% of 101.6mm label width */
+                height: 17.5mm !important; /* ~35% of 50.8mm label height */
+                shape-rendering: crispEdges;
             }
         }
     </style>
@@ -424,8 +442,8 @@
 <div class="container no-print">
     <header>
         <div>
-            <h1>Clinic Laptop Inventory & Sticker System</h1>
-            <small style="color: var(--text-secondary);">Auto-Numbering & Batch 4" x 2" Label Generator</small>
+            <h1>Clinic Laptop Inventory & POS Label System</h1>
+            <small style="color: var(--text-secondary);">4" × 2" (101.6 mm × 50.8 mm) Thermal Label Generator</small>
         </div>
         <div class="backup-controls">
             <button class="btn btn-outline" onclick="exportCSV()">Export CSV</button>
@@ -516,7 +534,7 @@
     </footer>
 </div>
 
-<!-- Dynamic Print Container for 4" x 2" Labels -->
+<!-- Dynamic Print Container for 4" x 2" (101.6 mm x 50.8 mm) Thermal Labels -->
 <div id="print-container"></div>
 
 <script>
@@ -709,7 +727,7 @@
         });
     }
 
-    // Generate & Print 4" x 2" Labels with Extra-Large LAP NO
+    // Generate & Print 4" x 2" (101.6 mm x 50.8 mm) POS Thermal Labels
     function generateAndPrintLabels(itemsToPrint) {
         if (!itemsToPrint || itemsToPrint.length === 0) {
             alert('Please select at least one laptop to print.');
@@ -719,36 +737,48 @@
         const printContainer = document.getElementById('print-container');
         printContainer.innerHTML = '';
 
-        itemsToPrint.forEach((item) => {
+        itemsToPrint.forEach((item, index) => {
             const pageDiv = document.createElement('div');
             pageDiv.className = 'sticker-page';
+            const barcodeId = `barcode-${index}`;
 
             pageDiv.innerHTML = `
-                <div class="sticker-left">
-                    <div class="sticker-num-title">LAP NO</div>
-                    <div class="sticker-big-num">${formatNum(item.number)}</div>
+                <div class="sticker-top">
+                    <div class="sticker-num-box">
+                        <div class="sticker-num-title">LAP NO</div>
+                        <div class="sticker-big-num">${formatNum(item.number)}</div>
+                    </div>
+                    <div class="sticker-details-box">
+                        <div class="sticker-site">${item.site}</div>
+                        <div class="sticker-meta-row">
+                            <span>Model: ${item.model}</span>
+                        </div>
+                        <div class="sticker-sn-label">SN: ${item.sn}</div>
+                    </div>
                 </div>
-                <div class="sticker-right">
-                    <div class="sticker-row">
-                        <span class="sticker-label">Clinic / Site</span>
-                        <span class="sticker-val-site">${item.site}</span>
-                    </div>
-                    <div class="sticker-row">
-                        <span class="sticker-label">Model</span>
-                        <span class="sticker-val-model">${item.model}</span>
-                    </div>
-                    <div class="sticker-row">
-                        <span class="sticker-label">Serial Number</span>
-                        <span class="sticker-val-sn">${item.sn}</span>
-                    </div>
+                <div class="sticker-barcode-section">
+                    <svg id="${barcodeId}"></svg>
                 </div>
             `;
             printContainer.appendChild(pageDiv);
+
+            // Code 128 Barcode (~85% width = ~86mm, ~35% height = ~18mm)
+            try {
+                JsBarcode(`#${barcodeId}`, item.sn, {
+                    format: "CODE128",
+                    width: 2,
+                    height: 55,
+                    displayValue: false,
+                    margin: 0
+                });
+            } catch (e) {
+                console.error("Barcode generation error:", e);
+            }
         });
 
         setTimeout(() => {
             window.print();
-        }, 150);
+        }, 250);
     }
 
     function printSingle(id) {
