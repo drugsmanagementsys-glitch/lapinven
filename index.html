@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinic Laptop Inventory & Label System | D2F Systems</title>
+    <title>Clinic Laptop Inventory & Barcode Sticker System | D2F Systems</title>
+    <!-- JsBarcode Library for crisp scannable barcodes -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <style>
         :root {
             --bg-main: #f4f7f9;
@@ -59,7 +61,8 @@
 
         .backup-controls {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         /* Form Section */
@@ -91,7 +94,7 @@
             color: var(--text-secondary);
         }
 
-        input, select {
+        input[type="text"], select {
             padding: 10px 14px;
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -102,9 +105,16 @@
             transition: border 0.2s;
         }
 
-        input:focus, select:focus {
+        input[type="text"]:focus, select:focus {
             border-color: var(--accent);
             background: #ffffff;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent);
         }
 
         .auto-badge {
@@ -115,10 +125,10 @@
         }
 
         .btn {
-            padding: 11px 20px;
+            padding: 10px 18px;
             border: none;
             border-radius: 8px;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
@@ -137,11 +147,20 @@
             background: var(--accent-hover);
         }
 
+        .btn-batch {
+            background: #0f766e;
+            color: white;
+        }
+
+        .btn-batch:hover {
+            background: #115e59;
+        }
+
         .btn-outline {
             background: #f8fafc;
             color: var(--text-primary);
             border: 1px solid var(--border);
-            padding: 8px 14px;
+            padding: 8px 12px;
             font-size: 0.85rem;
         }
 
@@ -231,9 +250,15 @@
             gap: 12px;
         }
 
+        .toolbar-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
         .search-box {
-            width: 100%;
-            max-width: 350px;
+            width: 260px;
         }
 
         table {
@@ -243,13 +268,13 @@
         }
 
         th, td {
-            padding: 14px 20px;
+            padding: 12px 16px;
             border-bottom: 1px solid #e2e8f0;
         }
 
         th {
             background: #f8fafc;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             text-transform: uppercase;
             color: var(--text-secondary);
             letter-spacing: 0.5px;
@@ -261,7 +286,7 @@
 
         .num-badge {
             font-weight: 800;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             color: var(--accent);
             background: #e0f2fe;
             padding: 4px 10px;
@@ -272,14 +297,13 @@
         .site-tag {
             padding: 4px 10px;
             border-radius: 6px;
-            font-size: 0.82rem;
+            font-size: 0.85rem;
             font-weight: 600;
             background: #f1f5f9;
             color: #334155;
             border: 1px solid #cbd5e1;
         }
 
-        /* Footer */
         footer {
             text-align: center;
             margin-top: 30px;
@@ -294,9 +318,9 @@
         }
 
         /* =========================================
-           PRINT STYLES FOR 4" x 2" STICKER LABEL
+           PRINT STYLES FOR BATCH 4" x 2" STICKERS
            ========================================= */
-        #print-area {
+        #print-container {
             display: none;
         }
 
@@ -305,92 +329,117 @@
                 size: 4in 2in;
                 margin: 0;
             }
-            body * {
-                visibility: hidden;
+            body {
+                padding: 0;
+                margin: 0;
+                background: #fff;
             }
-            #print-area, #print-area * {
-                visibility: visible;
+            .no-print {
+                display: none !important;
             }
-            #print-area {
-                display: flex !important;
-                position: fixed;
-                left: 0;
-                top: 0;
+            #print-container {
+                display: block !important;
+            }
+            .sticker-page {
                 width: 4in;
                 height: 2in;
-                padding: 0.12in 0.18in;
+                padding: 0.1in 0.14in;
                 box-sizing: border-box;
                 border: 2px solid #000;
                 background: #fff;
                 color: #000;
+                display: flex;
                 flex-direction: row;
                 align-items: center;
                 justify-content: space-between;
+                page-break-after: always;
+                break-after: page;
+            }
+            .sticker-page:last-child {
+                page-break-after: auto;
+                break-after: auto;
             }
             .sticker-left {
-                width: 34%;
+                width: 30%;
                 height: 100%;
                 border-right: 2px solid #000;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                padding-right: 8px;
+                padding-right: 6px;
             }
             .sticker-num-title {
-                font-size: 11pt;
-                font-weight: 700;
+                font-size: 9pt;
+                font-weight: 800;
                 text-transform: uppercase;
             }
             .sticker-big-num {
-                font-size: 46pt;
+                font-size: 42pt;
                 font-weight: 900;
                 line-height: 1;
                 margin-top: 2px;
             }
             .sticker-right {
-                width: 66%;
-                padding-left: 14px;
+                width: 70%;
+                padding-left: 10px;
                 display: flex;
                 flex-direction: column;
-                justify-content: center;
-                gap: 8px;
+                justify-content: space-between;
+                height: 100%;
             }
-            .sticker-row {
+            .sticker-top-info {
                 display: flex;
-                flex-direction: column;
+                justify-content: space-between;
+                align-items: flex-start;
+                border-bottom: 1px solid #000;
+                padding-bottom: 4px;
             }
             .sticker-label {
-                font-size: 8pt;
+                font-size: 7pt;
                 font-weight: 700;
                 text-transform: uppercase;
-                color: #333;
+                color: #222;
+                display: block;
             }
             .sticker-val-site {
-                font-size: 15pt;
+                font-size: 13pt;
                 font-weight: 900;
                 line-height: 1.1;
             }
             .sticker-val-model {
-                font-size: 12pt;
-                font-weight: 700;
-            }
-            .sticker-val-sn {
                 font-size: 11pt;
+                font-weight: 800;
+                text-align: right;
+            }
+            .sticker-barcode-box {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding-top: 2px;
+            }
+            .sticker-barcode-box svg {
+                max-width: 100%;
+                height: 46px;
+            }
+            .sticker-sn-text {
+                font-size: 9.5pt;
                 font-weight: 800;
                 font-family: monospace;
                 letter-spacing: 0.5px;
+                margin-top: 1px;
             }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container no-print">
     <header>
         <div>
-            <h1>Clinic Laptop Inventory & Sticker System</h1>
-            <small style="color: var(--text-secondary);">Automated Serial Tracking & 4" x 2" Label Generator</small>
+            <h1>Clinic Laptop Inventory & Barcode System</h1>
+            <small style="color: var(--text-secondary);">Auto-Numbering & Batch 4" x 2" Barcode Label Generator</small>
         </div>
         <div class="backup-controls">
             <button class="btn btn-outline" onclick="exportCSV()">Export CSV</button>
@@ -448,14 +497,21 @@
     <!-- Inventory Table -->
     <div class="table-card">
         <div class="table-toolbar">
-            <h2 id="currentTabTitle" style="font-size: 1.1rem;">Master Inventory</h2>
-            <input type="text" id="searchInput" class="search-box" placeholder="Search by Number, SN, Model, or Site..." onkeyup="renderTable()">
+            <div>
+                <h2 id="currentTabTitle" style="font-size: 1.1rem;">Master Inventory</h2>
+            </div>
+            <div class="toolbar-actions">
+                <button class="btn btn-batch" onclick="printSelected()">Print Selected (<span id="selectedCount">0</span>)</button>
+                <button class="btn btn-outline" onclick="printLastN(7)">Print Last 7 Labels</button>
+                <input type="text" id="searchInput" class="search-box" placeholder="Search No, SN, Model..." onkeyup="renderTable()">
+            </div>
         </div>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 100px;">Lap No.</th>
+                        <th style="width: 40px;"><input type="checkbox" id="selectAllBox" onchange="toggleSelectAll(this)"></th>
+                        <th style="width: 90px;">Lap No.</th>
                         <th>Serial Number (SN)</th>
                         <th>Model</th>
                         <th>Assigned Site</th>
@@ -474,33 +530,14 @@
     </footer>
 </div>
 
-<!-- Hidden 4x2 Inch Print Template -->
-<div id="print-area">
-    <div class="sticker-left">
-        <div class="sticker-num-title">LAP NO</div>
-        <div class="sticker-big-num" id="p-num">01</div>
-    </div>
-    <div class="sticker-right">
-        <div class="sticker-row">
-            <span class="sticker-label">Clinic / Site</span>
-            <span class="sticker-val-site" id="p-site">VP-OPD</span>
-        </div>
-        <div class="sticker-row">
-            <span class="sticker-label">Model</span>
-            <span class="sticker-val-model" id="p-model">Lenovo</span>
-        </div>
-        <div class="sticker-row">
-            <span class="sticker-label">Serial Number</span>
-            <span class="sticker-val-sn" id="p-sn">PF3XXXX</span>
-        </div>
-    </div>
-</div>
+<!-- Dynamic Print Container for 4" x 2" Barcode Labels -->
+<div id="print-container"></div>
 
 <script>
     let laptops = JSON.parse(localStorage.getItem('clinic_laptops_v1')) || [];
+    let selectedIds = new Set();
     let currentTab = 'Master Inventory';
 
-    // Smart Model Auto-Detection based on common SN prefixes
     function autoDetectModel(sn) {
         const val = sn.trim().toUpperCase();
         const modelSelect = document.getElementById('modelSelect');
@@ -511,20 +548,15 @@
             return;
         }
 
-        // Acer SNs typically start with NX, NH, UN, NXV (22 chars)
         if (val.startsWith('NX') || val.startsWith('NH') || val.startsWith('UN') || val.length === 22) {
             modelSelect.value = 'Acer';
-            badge.textContent = '(Auto-detected)';
-        } 
-        // Lenovo SNs typically start with PF, PC, MP, LR, MJ, R9, PW (8-10 chars)
-        else if (/^(PF|PC|MP|LR|MJ|R9|PW|YB)/.test(val)) {
+            badge.textContent = '(Auto)';
+        } else if (/^(PF|PC|MP|LR|MJ|R9|PW|YB)/.test(val)) {
             modelSelect.value = 'Lenovo';
-            badge.textContent = '(Auto-detected)';
-        } 
-        // Asus SNs typically start with a year/month code like M, N, P, R, S followed by N0CX / N0CV (15 chars)
-        else if (val.includes('N0C') || /^[A-Z]N0/.test(val) || (val.length === 15 && /^[0-9A-Z]+$/.test(val))) {
+            badge.textContent = '(Auto)';
+        } else if (val.includes('N0C') || /^[A-Z]N0/.test(val) || (val.length === 15 && /^[0-9A-Z]+$/.test(val))) {
             modelSelect.value = 'Asus';
-            badge.textContent = '(Auto-detected)';
+            badge.textContent = '(Auto)';
         } else {
             badge.textContent = '';
         }
@@ -544,18 +576,16 @@
 
         if (!sn || !model || !site) return;
 
-        // Prevent duplicate SN
         if (laptops.some(item => item.sn === sn)) {
-            alert('Error: This Serial Number (' + sn + ') is already registered in the Master Inventory!');
+            alert('Error: Serial Number (' + sn + ') is already registered!');
             return;
         }
 
-        // Calculate next sequential number starting from 1
         const maxNum = laptops.reduce((max, item) => Math.max(max, item.number), 0);
         const nextNum = maxNum + 1;
 
         const newEntry = {
-            id: Date.now(),
+            id: Date.now() + Math.floor(Math.random() * 1000),
             number: nextNum,
             sn: sn,
             model: model,
@@ -565,15 +595,15 @@
         laptops.push(newEntry);
         saveData();
 
-        // Reset form for next scan
         document.getElementById('snInput').value = '';
         document.getElementById('detectBadge').textContent = '';
         document.getElementById('snInput').focus();
     }
 
     function deleteLaptop(id) {
-        if (confirm('Are you sure you want to remove this laptop record?')) {
+        if (confirm('Remove this laptop record?')) {
             laptops = laptops.filter(item => item.id !== id);
+            selectedIds.delete(id);
             saveData();
         }
     }
@@ -589,6 +619,7 @@
     function setTab(tabName) {
         currentTab = tabName;
         document.getElementById('currentTabTitle').textContent = tabName;
+        document.getElementById('selectAllBox').checked = false;
 
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('active');
@@ -607,17 +638,15 @@
         document.getElementById('count-Chest').textContent = laptops.filter(l => l.site === 'Chest Clinic').length;
         document.getElementById('count-Nepro').textContent = laptops.filter(l => l.site === 'Nepro Clinic').length;
         document.getElementById('count-Backup').textContent = laptops.filter(l => l.site === 'Backup Laps').length;
+        document.getElementById('selectedCount').textContent = selectedIds.size;
     }
 
     function formatNum(num) {
         return num < 10 ? '0' + num : num;
     }
 
-    function renderTable() {
-        const tbody = document.getElementById('inventoryBody');
+    function getFilteredLaptops() {
         const query = document.getElementById('searchInput').value.toLowerCase();
-        tbody.innerHTML = '';
-
         let filtered = laptops;
 
         if (currentTab !== 'Master Inventory') {
@@ -632,15 +661,47 @@
                 item.site.toLowerCase().includes(query)
             );
         }
+        return filtered;
+    }
+
+    function toggleSelect(id, checkbox) {
+        if (checkbox.checked) {
+            selectedIds.add(id);
+        } else {
+            selectedIds.delete(id);
+        }
+        document.getElementById('selectedCount').textContent = selectedIds.size;
+    }
+
+    function toggleSelectAll(masterCheckbox) {
+        const filtered = getFilteredLaptops();
+        filtered.forEach(item => {
+            if (masterCheckbox.checked) {
+                selectedIds.add(item.id);
+            } else {
+                selectedIds.delete(item.id);
+            }
+        });
+        renderTable();
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('inventoryBody');
+        const filtered = getFilteredLaptops();
+        tbody.innerHTML = '';
+
+        document.getElementById('selectedCount').textContent = selectedIds.size;
 
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-secondary);">No laptops found in ${currentTab}.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--text-secondary);">No laptops found in ${currentTab}.</td></tr>`;
             return;
         }
 
         filtered.forEach(item => {
+            const isChecked = selectedIds.has(item.id) ? 'checked' : '';
             const tr = document.createElement('tr');
             tr.innerHTML = `
+                <td><input type="checkbox" ${isChecked} onchange="toggleSelect(${item.id}, this)"></td>
                 <td><span class="num-badge">${formatNum(item.number)}</span></td>
                 <td style="font-family: monospace; font-weight: 700; font-size: 1rem;">${item.sn}</td>
                 <td><strong>${item.model}</strong></td>
@@ -654,7 +715,7 @@
                     </select>
                 </td>
                 <td style="text-align: right; white-space: nowrap;">
-                    <button class="btn btn-print" onclick="printSticker(${item.id})">Print 4x2 Label</button>
+                    <button class="btn btn-print" onclick="printSingle(${item.id})">Print 4x2</button>
                     <button class="btn btn-del" onclick="deleteLaptop(${item.id})" title="Delete">✕</button>
                 </td>
             `;
@@ -662,17 +723,78 @@
         });
     }
 
-    // Print 4x2 Sticker Function
-    function printSticker(id) {
+    // Generate & Print Batch Stickers with Scannable Barcodes
+    function generateAndPrintLabels(itemsToPrint) {
+        if (!itemsToPrint || itemsToPrint.length === 0) {
+            alert('Please select at least one laptop to print.');
+            return;
+        }
+
+        const printContainer = document.getElementById('print-container');
+        printContainer.innerHTML = '';
+
+        itemsToPrint.forEach((item, index) => {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'sticker-page';
+            const barcodeId = `barcode-${index}`;
+
+            pageDiv.innerHTML = `
+                <div class="sticker-left">
+                    <div class="sticker-num-title">LAP NO</div>
+                    <div class="sticker-big-num">${formatNum(item.number)}</div>
+                </div>
+                <div class="sticker-right">
+                    <div class="sticker-top-info">
+                        <div>
+                            <span class="sticker-label">Site / Clinic</span>
+                            <span class="sticker-val-site">${item.site}</span>
+                        </div>
+                        <div>
+                            <span class="sticker-label" style="text-align:right;">Model</span>
+                            <span class="sticker-val-model">${item.model}</span>
+                        </div>
+                    </div>
+                    <div class="sticker-barcode-box">
+                        <svg id="${barcodeId}"></svg>
+                        <div class="sticker-sn-text">${item.sn}</div>
+                    </div>
+                </div>
+            `;
+            printContainer.appendChild(pageDiv);
+
+            // Render crisp Code128 Barcode for Serial Number
+            try {
+                JsBarcode(`#${barcodeId}`, item.sn, {
+                    format: "CODE128",
+                    width: 1.6,
+                    height: 38,
+                    displayValue: false,
+                    margin: 0
+                });
+            } catch (e) {
+                console.error("Barcode generation error:", e);
+            }
+        });
+
+        setTimeout(() => {
+            window.print();
+        }, 250);
+    }
+
+    function printSingle(id) {
         const item = laptops.find(l => l.id === id);
-        if (!item) return;
+        if (item) generateAndPrintLabels([item]);
+    }
 
-        document.getElementById('p-num').textContent = formatNum(item.number);
-        document.getElementById('p-site').textContent = item.site;
-        document.getElementById('p-model').textContent = item.model;
-        document.getElementById('p-sn').textContent = item.sn;
+    function printSelected() {
+        const items = laptops.filter(l => selectedIds.has(l.id));
+        generateAndPrintLabels(items);
+    }
 
-        window.print();
+    function printLastN(count) {
+        if (laptops.length === 0) return alert('No laptops in inventory.');
+        const lastItems = laptops.slice(-count);
+        generateAndPrintLabels(lastItems);
     }
 
     // Export CSV
@@ -710,6 +832,7 @@
                 const imported = JSON.parse(e.target.result);
                 if (Array.isArray(imported)) {
                     laptops = imported;
+                    selectedIds.clear();
                     saveData();
                     alert('Backup restored successfully!');
                 }
