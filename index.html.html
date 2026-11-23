@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic Laptop Inventory & Label System | D2F Systems</title>
+    <style>
+        :root {
+            --bg-main: #f4f7f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent: #0284c7;
+            --accent-hover: #0369a1;
+            --border: #cbd5e1;
+            --success: #16a34a;
+            --danger: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            padding: 18px 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        header h1 {
+            font-size: 1.4rem;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .backup-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Form Section */
+        .input-card {
+            background: var(--bg-card);
+            padding: 22px 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        input, select {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #f8fafc;
+            color: var(--text-primary);
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+            background: #ffffff;
+        }
+
+        .auto-badge {
+            font-size: 0.75rem;
+            color: var(--success);
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        .btn {
+            padding: 11px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-outline {
+            background: #f8fafc;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            font-size: 0.85rem;
+        }
+
+        .btn-outline:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-print {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        .btn-print:hover {
+            background: #bae6fd;
+        }
+
+        .btn-del {
+            background: #fee2e2;
+            color: var(--danger);
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+
+        .btn-del:hover {
+            background: #fecaca;
+        }
+
+        /* Navigation Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tab-btn {
+            padding: 10px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .count-pill {
+            background: rgba(0,0,0,0.08);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            margin-left: 6px;
+        }
+
+        .tab-btn.active .count-pill {
+            background: rgba(255,255,255,0.25);
+            color: white;
+        }
+
+        /* Search & Table */
+        .table-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .table-toolbar {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 350px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 14px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .num-badge {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--accent);
+            background: #e0f2fe;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .site-tag {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .glitch-brand {
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: 0.5px;
+        }
+
+        /* =========================================
+           PRINT STYLES FOR 4" x 2" STICKER LABEL
+           ========================================= */
+        #print-area {
+            display: none;
+        }
+
+        @media print {
+            @page {
+                size: 4in 2in;
+                margin: 0;
+            }
+            body * {
+                visibility: hidden;
+            }
+            #print-area, #print-area * {
+                visibility: visible;
+            }
+            #print-area {
+                display: flex !important;
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 4in;
+                height: 2in;
+                padding: 0.12in 0.18in;
+                box-sizing: border-box;
+                border: 2px solid #000;
+                background: #fff;
+                color: #000;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .sticker-left {
+                width: 34%;
+                height: 100%;
+                border-right: 2px solid #000;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding-right: 8px;
+            }
+            .sticker-num-title {
+                font-size: 11pt;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+            .sticker-big-num {
+                font-size: 46pt;
+                font-weight: 900;
+                line-height: 1;
+                margin-top: 2px;
+            }
+            .sticker-right {
+                width: 66%;
+                padding-left: 14px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                gap: 8px;
+            }
+            .sticker-row {
+                display: flex;
+                flex-direction: column;
+            }
+            .sticker-label {
+                font-size: 8pt;
+                font-weight: 700;
+                text-transform: uppercase;
+                color: #333;
+            }
+            .sticker-val-site {
+                font-size: 15pt;
+                font-weight: 900;
+                line-height: 1.1;
+            }
+            .sticker-val-model {
+                font-size: 12pt;
+                font-weight: 700;
+            }
+            .sticker-val-sn {
+                font-size: 11pt;
+                font-weight: 800;
+                font-family: monospace;
+                letter-spacing: 0.5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Clinic Laptop Inventory & Sticker System</h1>
+            <small style="color: var(--text-secondary);">Automated Serial Tracking & 4" x 2" Label Generator</small>
+        </div>
+        <div class="backup-controls">
+            <button class="btn btn-outline" onclick="exportCSV()">Export CSV</button>
+            <button class="btn btn-outline" onclick="exportJSON()">Backup JSON</button>
+            <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">Restore JSON</button>
+            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+        </div>
+    </header>
+
+    <!-- Input Card -->
+    <div class="input-card">
+        <form id="laptopForm" class="form-grid" onsubmit="addLaptop(event)">
+            <div class="form-group">
+                <label for="snInput">Serial Number (SN) *</label>
+                <input type="text" id="snInput" placeholder="Scan or type SN..." required oninput="autoDetectModel(this.value)" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="modelSelect">Laptop Model <span id="detectBadge" class="auto-badge"></span></label>
+                <select id="modelSelect" required>
+                    <option value="">-- Select Model --</option>
+                    <option value="Acer">Acer</option>
+                    <option value="Lenovo">Lenovo</option>
+                    <option value="Asus">Asus</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="siteSelect">Clinic / Site *</label>
+                <select id="siteSelect" required>
+                    <option value="VP-OPD">VP-OPD</option>
+                    <option value="MC-A/B & SC">MC-A/B & SC</option>
+                    <option value="Chest Clinic">Chest Clinic</option>
+                    <option value="Nepro Clinic">Nepro Clinic</option>
+                    <option value="Backup Laps">Backup Laps</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">+ Assign & Save</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="tabs" id="tabsContainer">
+        <button class="tab-btn active" onclick="setTab('Master Inventory')">Master Inventory <span class="count-pill" id="count-Master">0</span></button>
+        <button class="tab-btn" onclick="setTab('VP-OPD')">VP-OPD <span class="count-pill" id="count-VP-OPD">0</span></button>
+        <button class="tab-btn" onclick="setTab('MC-A/B & SC')">MC-A/B & SC <span class="count-pill" id="count-MC">0</span></button>
+        <button class="tab-btn" onclick="setTab('Chest Clinic')">Chest Clinic <span class="count-pill" id="count-Chest">0</span></button>
+        <button class="tab-btn" onclick="setTab('Nepro Clinic')">Nepro Clinic <span class="count-pill" id="count-Nepro">0</span></button>
+        <button class="tab-btn" onclick="setTab('Backup Laps')">Backup Laps <span class="count-pill" id="count-Backup">0</span></button>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="table-card">
+        <div class="table-toolbar">
+            <h2 id="currentTabTitle" style="font-size: 1.1rem;">Master Inventory</h2>
+            <input type="text" id="searchInput" class="search-box" placeholder="Search by Number, SN, Model, or Site..." onkeyup="renderTable()">
+        </div>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Lap No.</th>
+                        <th>Serial Number (SN)</th>
+                        <th>Model</th>
+                        <th>Assigned Site</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryBody">
+                    <!-- Rows injected via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer>
+        System engineered by <span class="glitch-brand">Dev by DaNuka (D2F Systems)</span>
+    </footer>
+</div>
+
+<!-- Hidden 4x2 Inch Print Template -->
+<div id="print-area">
+    <div class="sticker-left">
+        <div class="sticker-num-title">LAP NO</div>
+        <div class="sticker-big-num" id="p-num">01</div>
+    </div>
+    <div class="sticker-right">
+        <div class="sticker-row">
+            <span class="sticker-label">Clinic / Site</span>
+            <span class="sticker-val-site" id="p-site">VP-OPD</span>
+        </div>
+        <div class="sticker-row">
+            <span class="sticker-label">Model</span>
+            <span class="sticker-val-model" id="p-model">Lenovo</span>
+        </div>
+        <div class="sticker-row">
+            <span class="sticker-label">Serial Number</span>
+            <span class="sticker-val-sn" id="p-sn">PF3XXXX</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    let laptops = JSON.parse(localStorage.getItem('clinic_laptops_v1')) || [];
+    let currentTab = 'Master Inventory';
+
+    // Smart Model Auto-Detection based on common SN prefixes
+    function autoDetectModel(sn) {
+        const val = sn.trim().toUpperCase();
+        const modelSelect = document.getElementById('modelSelect');
+        const badge = document.getElementById('detectBadge');
+
+        if (!val) {
+            badge.textContent = '';
+            return;
+        }
+
+        // Acer SNs typically start with NX, NH, UN, NXV (22 chars)
+        if (val.startsWith('NX') || val.startsWith('NH') || val.startsWith('UN') || val.length === 22) {
+            modelSelect.value = 'Acer';
+            badge.textContent = '(Auto-detected)';
+        } 
+        // Lenovo SNs typically start with PF, PC, MP, LR, MJ, R9, PW (8-10 chars)
+        else if (/^(PF|PC|MP|LR|MJ|R9|PW|YB)/.test(val)) {
+            modelSelect.value = 'Lenovo';
+            badge.textContent = '(Auto-detected)';
+        } 
+        // Asus SNs typically start with a year/month code like M, N, P, R, S followed by N0CX / N0CV (15 chars)
+        else if (val.includes('N0C') || /^[A-Z]N0/.test(val) || (val.length === 15 && /^[0-9A-Z]+$/.test(val))) {
+            modelSelect.value = 'Asus';
+            badge.textContent = '(Auto-detected)';
+        } else {
+            badge.textContent = '';
+        }
+    }
+
+    function saveData() {
+        localStorage.setItem('clinic_laptops_v1', JSON.stringify(laptops));
+        updateCounts();
+        renderTable();
+    }
+
+    function addLaptop(e) {
+        e.preventDefault();
+        const sn = document.getElementById('snInput').value.trim().toUpperCase();
+        const model = document.getElementById('modelSelect').value;
+        const site = document.getElementById('siteSelect').value;
+
+        if (!sn || !model || !site) return;
+
+        // Prevent duplicate SN
+        if (laptops.some(item => item.sn === sn)) {
+            alert('Error: This Serial Number (' + sn + ') is already registered in the Master Inventory!');
+            return;
+        }
+
+        // Calculate next sequential number starting from 1
+        const maxNum = laptops.reduce((max, item) => Math.max(max, item.number), 0);
+        const nextNum = maxNum + 1;
+
+        const newEntry = {
+            id: Date.now(),
+            number: nextNum,
+            sn: sn,
+            model: model,
+            site: site
+        };
+
+        laptops.push(newEntry);
+        saveData();
+
+        // Reset form for next scan
+        document.getElementById('snInput').value = '';
+        document.getElementById('detectBadge').textContent = '';
+        document.getElementById('snInput').focus();
+    }
+
+    function deleteLaptop(id) {
+        if (confirm('Are you sure you want to remove this laptop record?')) {
+            laptops = laptops.filter(item => item.id !== id);
+            saveData();
+        }
+    }
+
+    function changeSite(id, newSite) {
+        const index = laptops.findIndex(item => item.id === id);
+        if (index !== -1) {
+            laptops[index].site = newSite;
+            saveData();
+        }
+    }
+
+    function setTab(tabName) {
+        currentTab = tabName;
+        document.getElementById('currentTabTitle').textContent = tabName;
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.textContent.startsWith(tabName)) {
+                btn.classList.add('active');
+            }
+        });
+
+        renderTable();
+    }
+
+    function updateCounts() {
+        document.getElementById('count-Master').textContent = laptops.length;
+        document.getElementById('count-VP-OPD').textContent = laptops.filter(l => l.site === 'VP-OPD').length;
+        document.getElementById('count-MC').textContent = laptops.filter(l => l.site === 'MC-A/B & SC').length;
+        document.getElementById('count-Chest').textContent = laptops.filter(l => l.site === 'Chest Clinic').length;
+        document.getElementById('count-Nepro').textContent = laptops.filter(l => l.site === 'Nepro Clinic').length;
+        document.getElementById('count-Backup').textContent = laptops.filter(l => l.site === 'Backup Laps').length;
+    }
+
+    function formatNum(num) {
+        return num < 10 ? '0' + num : num;
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('inventoryBody');
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        tbody.innerHTML = '';
+
+        let filtered = laptops;
+
+        if (currentTab !== 'Master Inventory') {
+            filtered = filtered.filter(item => item.site === currentTab);
+        }
+
+        if (query) {
+            filtered = filtered.filter(item => 
+                formatNum(item.number).toString().includes(query) ||
+                item.sn.toLowerCase().includes(query) ||
+                item.model.toLowerCase().includes(query) ||
+                item.site.toLowerCase().includes(query)
+            );
+        }
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--text-secondary);">No laptops found in ${currentTab}.</td></tr>`;
+            return;
+        }
+
+        filtered.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="num-badge">${formatNum(item.number)}</span></td>
+                <td style="font-family: monospace; font-weight: 700; font-size: 1rem;">${item.sn}</td>
+                <td><strong>${item.model}</strong></td>
+                <td>
+                    <select class="site-tag" onchange="changeSite(${item.id}, this.value)">
+                        <option value="VP-OPD" ${item.site === 'VP-OPD' ? 'selected' : ''}>VP-OPD</option>
+                        <option value="MC-A/B & SC" ${item.site === 'MC-A/B & SC' ? 'selected' : ''}>MC-A/B & SC</option>
+                        <option value="Chest Clinic" ${item.site === 'Chest Clinic' ? 'selected' : ''}>Chest Clinic</option>
+                        <option value="Nepro Clinic" ${item.site === 'Nepro Clinic' ? 'selected' : ''}>Nepro Clinic</option>
+                        <option value="Backup Laps" ${item.site === 'Backup Laps' ? 'selected' : ''}>Backup Laps</option>
+                    </select>
+                </td>
+                <td style="text-align: right; white-space: nowrap;">
+                    <button class="btn btn-print" onclick="printSticker(${item.id})">Print 4x2 Label</button>
+                    <button class="btn btn-del" onclick="deleteLaptop(${item.id})" title="Delete">✕</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Print 4x2 Sticker Function
+    function printSticker(id) {
+        const item = laptops.find(l => l.id === id);
+        if (!item) return;
+
+        document.getElementById('p-num').textContent = formatNum(item.number);
+        document.getElementById('p-site').textContent = item.site;
+        document.getElementById('p-model').textContent = item.model;
+        document.getElementById('p-sn').textContent = item.sn;
+
+        window.print();
+    }
+
+    // Export CSV
+    function exportCSV() {
+        if (laptops.length === 0) return alert('No data to export.');
+        let csv = 'Lap No,Serial Number,Model,Site\n';
+        laptops.forEach(l => {
+            csv += `${formatNum(l.number)},"${l.sn}","${l.model}","${l.site}"\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Clinic_Laptop_Inventory_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+    }
+
+    // Export JSON Backup
+    function exportJSON() {
+        const blob = new Blob([JSON.stringify(laptops, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Laptop_Inventory_Backup.json`;
+        a.click();
+    }
+
+    // Import JSON Backup
+    function importJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported)) {
+                    laptops = imported;
+                    saveData();
+                    alert('Backup restored successfully!');
+                }
+            } catch (err) {
+                alert('Invalid backup file.');
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // Initial Load
+    updateCounts();
+    renderTable();
+</script>
+
+</body>
+</html>
